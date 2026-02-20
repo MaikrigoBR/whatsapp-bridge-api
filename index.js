@@ -9,7 +9,8 @@ app.use(express.json({ limit: '50mb' }));
 
 const port = 3001; // Rest API Server runs on 3001, distinct from your React app
 
-// Using LocalAuth so you don't need to scan the QR code every time the server restarts
+const qrcodeLib = require('qrcode');
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
@@ -26,23 +27,29 @@ const client = new Client({
 });
 
 let isReady = false;
+let qrBase64 = null;
 
-client.on('qr', (qr) => {
+client.on('qr', async (qr) => {
     // Generate and scan this code with your phone (WhatsApp Linked Devices)
     console.log('\n================================================');
     console.log('📲  ATENÇÃO: ESCANEIE O QR CODE ABAIXO NO SEU WHATSAPP:');
     qrcode.generate(qr, { small: true });
     console.log('================================================\n');
+    try {
+        qrBase64 = await qrcodeLib.toDataURL(qr);
+    } catch (err) {}
 });
 
 client.on('ready', () => {
     console.log('\n✅ Motor do WhatsApp Conectado e Pronto para Disparos!');
     isReady = true;
+    qrBase64 = null;
 });
 
 client.on('disconnected', (reason) => {
     console.log('🔴 WhatsApp desconectado. Motivo:', reason);
     isReady = false;
+    qrBase64 = null;
     // Tenta reinicializar após um tempo
     setTimeout(() => {
         console.log('🔄 Tentando reconectar...');
@@ -66,6 +73,14 @@ client.on('auth_failure', (msg) => {
 // --- SISTEMA DE FILA BACKGROUND SEGURO (MÚLTIPLOS USUÁRIOS/LONGAS CAMPANHAS) ---
 const campaignQueue = [];
 let isProcessingQueue = false;
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        isReady,
+        qrCode: qrBase64,
+        queueLength: campaignQueue.length // extra feature
+    });
+});
 
 async function processCampaignQueue() {
     if (isProcessingQueue) return;
