@@ -58,16 +58,21 @@ client.on('disconnected', (reason) => {
 });
 
 // Impede que o servidor Node congele/caia se houver um erro solto assíncrono
+let lastCriticalError = null;
+
 process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ [URGENTE] Promessa Rejeitada não tratada:', reason);
+    lastCriticalError = String(reason);
 });
 
 process.on('uncaughtException', (error) => {
     console.error('🚨 [CRÍTICO] Exceção não capturada (Crash evitado):', error);
+    lastCriticalError = String(error);
 });
 
 client.on('auth_failure', (msg) => {
     console.error('Falha na autenticação do WhatsApp', msg);
+    lastCriticalError = `Falha na autenticação do WhatsApp: ${msg}`;
 });
 
 // --- SISTEMA DE FILA BACKGROUND SEGURO (MÚLTIPLOS USUÁRIOS/LONGAS CAMPANHAS) ---
@@ -78,7 +83,8 @@ app.get('/api/status', (req, res) => {
     res.json({
         isReady,
         qrCode: qrBase64,
-        queueLength: campaignQueue.length // extra feature
+        queueLength: campaignQueue.length,
+        lastError: lastCriticalError
     });
 });
 
@@ -221,5 +227,13 @@ app.listen(port, () => {
     console.log(`📡 WHATSAPP BRIDGE API INICIADA (Porta ${port})`);
     console.log(`Aguarde o carregamento do motor Chromium (pode levar 1 minuto)...`);
     console.log(`======================================================\n`);
-    client.initialize();
+    try {
+        client.initialize().catch(err => {
+             console.error('Falha assíncrona na inicialização do cliente:', err);
+             lastCriticalError = String(err);
+        });
+    } catch(err) {
+        console.error('Falha na inicialização inicial do cliente:', err);
+        lastCriticalError = String(err);
+    }
 });

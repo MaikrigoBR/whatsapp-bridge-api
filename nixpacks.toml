@@ -1,0 +1,19 @@
+[phases.setup]
+aptPkgs = [
+  "wget",
+  "ca-certificates",
+  "libglib2.0-0",
+  "libxss1",
+  "libcups2",
+  "libnss3",
+  "libxcomposite1",
+  "libxrandr2",
+  "libasound2",
+  "libatk-bridge2.0-0",
+  "libpangocairo-1.0-0",
+  "libatk1.0-0",
+  "libx11-xcb1",
+  "libxshmfence1",
+  "libdrm2",
+  "libgbm1"
+]
