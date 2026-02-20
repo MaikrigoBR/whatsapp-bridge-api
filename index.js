@@ -11,6 +11,17 @@ const port = 3001; // Rest API Server runs on 3001, distinct from your React app
 
 const qrcodeLib = require('qrcode');
 
+const apiLogs = [];
+function addLog(type, ...args) {
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+    apiLogs.unshift(`[${new Date().toISOString()}] [${type}] ${msg}`);
+    if (apiLogs.length > 50) apiLogs.pop();
+}
+const origLog = console.log;
+const origErr = console.error;
+console.log = (...args) => { addLog('INFO', ...args); origLog(...args); };
+console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
@@ -86,6 +97,10 @@ app.get('/api/status', (req, res) => {
         queueLength: campaignQueue.length,
         lastError: lastCriticalError
     });
+});
+
+app.get('/api/logs', (req, res) => {
+    res.json(apiLogs);
 });
 
 async function processCampaignQueue() {
