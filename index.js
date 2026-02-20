@@ -25,6 +25,8 @@ console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
+        timeout: 60000,
+        protocolTimeout: 300000, // 5 minutes (important for slow rendering on Railway)
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
