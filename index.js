@@ -29,8 +29,8 @@ const client = new Client({
         remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     },
     puppeteer: {
-        timeout: 0,
-        protocolTimeout: 0, 
+        timeout: 60000,
+        protocolTimeout: 600000, // 10 minutes
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -38,7 +38,10 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding'
         ]
     }
 });
@@ -132,11 +135,11 @@ async function processCampaignQueue() {
             }
 
             try {
-                const profile = await client.getNumberId(cleanPhone);
-                if (!profile) {
-                    console.error(`❌ (Fila) Número ${cleanPhone} não encontrado no WhatsApp.`);
-                    continue;
-                }
+                console.log(`\n🔍 (Fila) Preparando envio para: ${cleanPhone}`);
+                
+                // Ignora o client.getNumberId(cleanPhone) pois ele causa Timeout em servidores lentos como Railway (Chromium trava)
+                // Forma o ID com base no telefone formatado + @c.us
+                const profile = { _serialized: `${cleanPhone}@c.us` };
                 
                 if (job.mediaFiles && job.mediaFiles.length > 0) {
                     for (let j = 0; j < job.mediaFiles.length; j++) {
@@ -203,13 +206,8 @@ app.post('/api/send', async (req, res) => {
             cleanPhone = '55' + cleanPhone;
         }
         
-        // Verifica se o número existe no WhatsApp e obtém o ID correto
-        const profile = await client.getNumberId(cleanPhone);
-        
-        if (!profile) {
-            console.error(`O número ${cleanPhone} não está registrado no WhatsApp.`);
-            return res.status(404).json({ error: 'Número não encontrado no WhatsApp.' });
-        }
+        // Forma o ID com base no telefone formatado + @c.us (Pula getNumberId para focar em performance e evitar crashes)
+        const profile = { _serialized: `${cleanPhone}@c.us` };
         
         // Se tiver midias anexadas
         if (mediaFiles && mediaFiles.length > 0) {
