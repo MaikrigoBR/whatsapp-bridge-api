@@ -141,10 +141,12 @@ async function processCampaignQueue() {
 
             try {
                 console.log(`\n🔍 (Fila) Preparando envio para: ${cleanPhone}`);
-                
-                // Ignora o client.getNumberId(cleanPhone) pois ele causa Timeout em servidores lentos como Railway (Chromium trava)
-                // Forma o ID com base no telefone formatado + @c.us
-                const profile = { _serialized: `${cleanPhone}@c.us` };
+                // É OBRIGATÓRIO checar o número no novo WA Web para evitar que Chromium congele enviando mídia para chat inexistente!
+                let profile = await client.getNumberId(cleanPhone);
+                if (!profile || !profile._serialized) {
+                    console.log(`❌ Número não encontrado no WhatsApp (Fila pulando): ${cleanPhone}`);
+                    continue;
+                }
                 
                 if (job.mediaFiles && job.mediaFiles.length > 0) {
                     for (let j = 0; j < job.mediaFiles.length; j++) {
@@ -211,8 +213,11 @@ app.post('/api/send', async (req, res) => {
             cleanPhone = '55' + cleanPhone;
         }
         
-        // Forma o ID com base no telefone formatado + @c.us (Pula getNumberId para focar em performance e evitar crashes)
-        const profile = { _serialized: `${cleanPhone}@c.us` };
+        // É OBRIGATÓRIO verificar para a engrenagem criar o contato interno e não dar Timeout de evaluate
+        let profile = await client.getNumberId(cleanPhone);
+        if (!profile || !profile._serialized) {
+            return res.status(404).json({ error: 'Número não é WhatsApp válido.' });
+        }
         
         // Se tiver midias anexadas
         if (mediaFiles && mediaFiles.length > 0) {
