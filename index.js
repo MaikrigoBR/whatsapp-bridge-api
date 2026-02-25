@@ -24,6 +24,10 @@ console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
 const client = new Client({
     authStrategy: new LocalAuth(),
+    webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+    },
     puppeteer: {
         timeout: 60000,
         protocolTimeout: 300000, // 5 minutes (important for slow rendering on Railway)
