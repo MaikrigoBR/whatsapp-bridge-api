@@ -24,10 +24,6 @@ console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
 const client = new Client({
     authStrategy: new LocalAuth(),
-    webVersionCache: {
-        type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
-    },
     puppeteer: {
         timeout: 60000,
         protocolTimeout: 600000, // 10 minutes
@@ -62,6 +58,7 @@ client.on('qr', async (qr) => {
 
 client.on('authenticated', () => {
     console.log('\n✅ WhatsApp Autenticado! (Aguardando tela principal...)');
+    qrBase64 = null;
 });
 
 client.on('loading_screen', (percent, message) => {
