@@ -29,8 +29,8 @@ const client = new Client({
         remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     },
     puppeteer: {
-        timeout: 60000,
-        protocolTimeout: 300000, // 5 minutes (important for slow rendering on Railway)
+        timeout: 0,
+        protocolTimeout: 0, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
