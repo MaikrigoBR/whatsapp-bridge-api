@@ -60,6 +60,14 @@ client.on('qr', async (qr) => {
     } catch (err) {}
 });
 
+client.on('authenticated', () => {
+    console.log('\n✅ WhatsApp Autenticado! (Aguardando tela principal...)');
+});
+
+client.on('loading_screen', (percent, message) => {
+    console.log(`\n⏳ Carregando WhatsApp... ${percent}% - ${message}`);
+});
+
 client.on('ready', () => {
     console.log('\n✅ Motor do WhatsApp Conectado e Pronto para Disparos!');
     isReady = true;
