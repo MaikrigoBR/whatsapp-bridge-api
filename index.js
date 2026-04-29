@@ -63,4 +63,45 @@ client.on('disconnected', () => {
     isReady = false;
     qrCodeImage = null;
     
+    client.initialize();
+});
+
+// ENDPOINTS DA API
+app.get('/', (req, res) => {
+    res.send('<h1>🤖 WhatsApp Bridge API: ONLINE</h1><p>Acesse /api/status para o QR Code.</p>');
+});
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        isReady,
+        qrCode: qrCodeImage,
+        lastError: null
+    });
+});
+
+app.get('/api/logs', (req, res) => {
+    res.json(apiLogs);
+});
+
+app.post('/api/send', async (req, res) => {
+    if (!isReady) return res.status(503).json({ error: 'WhatsApp desconectado.' });
+    const { phone, message } = req.body;
+    try {
+        let cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length <= 11) cleanPhone = '55' + cleanPhone;
+        await client.sendMessage(`${cleanPhone}@c.us`, message);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+const port = process.env.PORT || 8080;
+// IMPORTANTE: Adicionamos '0.0.0.0' para o Fly.io conseguir conectar
+app.listen(port, '0.0.0.0', () => {
+    console.log(`📡 Servidor na porta ${port}`);
+    client.initialize().catch(err => {
+        console.error('ERRO NA INICIALIZAÇÃO:', err.message || err);
+    });
+});
 
