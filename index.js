@@ -41,6 +41,7 @@ const client = new Client({
 });
 
 // EVENTOS DO WHATSAPP
+// EVENTOS DO WHATSAPP
 client.on('qr', (qr) => {
     qrcodeLib.toDataURL(qr, (err, url) => {
         if (err) {
@@ -48,23 +49,33 @@ client.on('qr', (qr) => {
             return;
         }
         qrCodeImage = url;
-        addLog('INFO', '📲 QR CODE GERADO COM SUCESSO!');
+        addLog('INFO', '📲 NOVO QR CODE GERADO!');
     });
 });
 
+// NOVO: Avisa assim que o celular ler o código
+client.on('authenticated', () => {
+    addLog('INFO', '✅ QR CODE LIDO! SINCRONIZANDO CONVERSAS...');
+    qrCodeImage = null; // Para de mostrar o QR Code no site
+});
+
+client.on('auth_failure', (msg) => {
+    addLog('ERROR', '❌ FALHA NA CONEXÃO: ' + msg);
+});
+
 client.on('ready', () => {
-    console.log('✅ WHATSAPP CONECTADO E PRONTO!');
+    addLog('INFO', '✅ WHATSAPP CONECTADO E PRONTO PARA DISPAROS!');
     isReady = true;
     qrCodeImage = null;
 });
 
-client.on('disconnected', () => {
-    console.log('❌ WHATSAPP DESCONECTADO!');
+client.on('disconnected', (reason) => {
+    addLog('ERROR', '❌ WHATSAPP DESCONECTADO: ' + reason);
     isReady = false;
     qrCodeImage = null;
-    
     client.initialize();
 });
+
 
 // ENDPOINTS DA API
 app.get('/', (req, res) => {
