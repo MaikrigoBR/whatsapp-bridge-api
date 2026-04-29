@@ -1,60 +1,96 @@
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, doc, getDoc, setDoc } = require('firebase/firestore');
-const fs = require('fs-extra');
-const path = require('path');
-const archiver = require('archiver');
-const unzipper = require('unzipper');
+const cors = require('cors');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const qrcodeLib = require('qrcode');
 
 const app = express();
-app.use(require('cors')());
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-const port = process.env.PORT || 3001;
 
-const firebaseConfig = {
-    apiKey: process.env.VITE_FIREBASE_API_KEY,
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-    appId: process.env.VITE_FIREBASE_APP_ID
-};
-const db = getFirestore(initializeApp(firebaseConfig));
-const AUTH_PATH = path.join(__dirname, '.wwebjs_auth');
+// Página inicial para teste
+app.get('/', (req, res) => {
+    res.send('<h1>🤖 WhatsApp Bridge API: ONLINE</h1><p>Acesse <a href="/api/status">/api/status</a> para o QR Code.</p>');
+});
 
-async function saveSession() {
-    console.log("💾 Salvando cópia do login no Firebase...");
-    const output = fs.createWriteStream('session.zip');
-    const archive = archiver('zip');
-    archive.pipe(output);
-    archive.directory(AUTH_PATH, false);
-    await archive.finalize();
-    const base64 = fs.readFileSync('session.zip', { encoding: 'base64' });
-    await setDoc(doc(db, "system_metadata", "whatsapp_session"), { data: base64, updated: new Date().toISOString() });
-    console.log("✅ Backup concluído!");
+const port = process.env.PORT || 8080; 
+
+const apiLogs = [];
+function addLog(type, ...args) {
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+    apiLogs.unshift(`[${new Date().toISOString()}] [${type}] ${msg}`);
+    if (apiLogs.length > 50) apiLogs.pop();
 }
+const origLog = console.log;
+const origErr = console.error;
+console.log = (...args) => { addLog('INFO', ...args); origLog(...args); };
+console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
-async function loadSession() {
+const client = new Client({
+    authStrategy: new LocalAuth({
+        dataPath: '/data/session' // AQUI É O DISCO RÍGIDO DO FLY.IO
+    }),
+    puppeteer: {
+        executablePath: '/usr/bin/google-chrome-stable',
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+        ]
+    }
+});
+
+let isReady = false;
+let qrBase64 = null;
+
+client.on('qr', async (qr) => {
+    console.log('📲 NOVO QR CODE GERADO!');
     try {
-        const snap = await getDoc(doc(db, "system_metadata", "whatsapp_session"));
-        if (snap.exists()) {
-            console.log("📂 Restaurando login do Firebase...");
-            fs.writeFileSync('session.zip', snap.data().data, { encoding: 'base64' });
-            await fs.createReadStream('session.zip').pipe(unzipper.Extract({ path: AUTH_PATH })).promise();
-            console.log("✅ Login restaurado!");
-        }
-    } catch (e) { console.log("Sem backup para restaurar."); }
-}
+        qrBase64 = await qrcodeLib.toDataURL(qr);
+    } catch (err) { console.error('Erro ao gerar QR Base64', err); }
+});
 
-async function start() {
-    await loadSession();
-    const client = new Client({
-        authStrategy: new LocalAuth(),
-        puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process'] }
-    });
-    client.on('qr', () => console.log("📲 ESCANEIE O QR NO PAINEL"));
-    client.on('ready', () => { console.log('✅ CONECTADO!'); saveSession(); });
+client.on('ready', () => {
+    console.log('✅ WHATSAPP CONECTADO E PRONTO!');
+    isReady = true;
+    qrBase64 = null;
+});
+
+client.on('disconnected', () => {
+    isReady = false;
+    qrBase64 = null;
     client.initialize();
-}
+});
 
-app.get('/api/status', (req, res) => res.json({ status: 'active' }));
-app.listen(port, () => start());
+app.get('/api/status', (req, res) => {
+    res.json({
+        isReady,
+        qrCode: qrBase64,
+        lastError: null
+    });
+});
 
+app.get('/api/logs', (req, res) => {
+    res.json(apiLogs);
+});
+
+// Endpoint de disparo
+app.post('/api/send', async (req, res) => {
+    if (!isReady) return res.status(503).json({ error: 'WhatsApp desconectado.' });
+    const { phone, message } = req.body;
+    try {
+        let cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length <= 11) cleanPhone = '55' + cleanPhone;
+        await client.sendMessage(`${cleanPhone}@c.us`, message);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`📡 Servidor rodando na porta ${port}`);
+    client.initialize().catch(err => console.error('Erro na inicialização:', err));
+});
