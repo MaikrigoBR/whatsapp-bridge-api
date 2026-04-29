@@ -27,18 +27,19 @@ console.log = (...args) => { addLog('INFO', ...args); origLog(...args); };
 console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
+    authStrategy: new LocalAuth({
+        dataPath: './.wwebjs_auth' // Mudança: Pasta local para evitar erro de permissão
+    }),
     puppeteer: {
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-        headless: true,
+        headless: 'new',
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox', 
             '--disable-dev-shm-usage', 
             '--disable-accelerated-2d-canvas',
             '--disable-gpu',
-            '--no-first-run', 
-            '--no-zygote'
+            '--window-size=1280,720' // NOVO: Força o Chrome a ter um tamanho para desenhar o QR
         ]
     }
 });
