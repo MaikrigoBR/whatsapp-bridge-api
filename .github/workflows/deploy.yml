@@ -14,7 +14,11 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
       - name: Garantir que o Volume existe
+        # Aqui dizemos ao GitHub para entrar na pasta do robô antes de rodar o comando
+        working-directory: ./whatsapp-api/whatsapp-bridge-api-main
         run: flyctl volumes create whatsapp_data --region gru --size 1 -a whatsapp-bridge-api --non-interactive || true
         
       - name: Deploy
+        # Aqui também avisamos que o robô está na subpasta
+        working-directory: ./whatsapp-api/whatsapp-bridge-api-main
         run: flyctl deploy --remote-only -a whatsapp-bridge-api
