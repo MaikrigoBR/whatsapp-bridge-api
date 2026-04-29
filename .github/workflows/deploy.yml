@@ -13,11 +13,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
-      - name: Garantir que o Volume existe
-        # Agora ele tenta criar em SP e ignora se já existir
-        run: flyctl volumes create whatsapp_data --region gru --size 1 -a whatsapp-bridge-api --non-interactive || true
+      - name: Garantir que os Volumes existem nos EUA
+        # Vamos criar dois volumes em 'iad' como ele pediu
+        run: |
+          flyctl volumes create whatsapp_data --region iad --size 1 -a whatsapp-bridge-api --non-interactive || true
+          flyctl volumes create whatsapp_data --region iad --size 1 -a whatsapp-bridge-api --non-interactive || true
         
       - name: Deploy
-        # Adicionei o "--ha=false" para ele não tentar criar 2 robôs
-        run: flyctl deploy --remote-only --ha=false -a whatsapp-bridge-api
+        # Tiramos o --ha=false para deixar ele criar as duas máquinas
+        run: flyctl deploy --remote-only -a whatsapp-bridge-api
+
 
