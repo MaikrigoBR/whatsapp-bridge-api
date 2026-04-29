@@ -1,10 +1,5 @@
-# fly.toml app configuration file generated for whatsapp-bridge-api on 2026-04-29T14:57:51Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "whatsapp-bridge-api"
-primary_region = "gru"
+primary_region = "iad" # MUDAMOS PARA VIRGINIA
 
 [build]
   dockerfile = "Dockerfile"
@@ -12,9 +7,9 @@ primary_region = "gru"
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'suspend' # Suspende para economizar quando não usa
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
-  min_machines_running = 0 # Permite que ele pare e volte quando chegar mensagem
+  min_machines_running = 0
 
 [[mounts]]
   source = "whatsapp_data"
