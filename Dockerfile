@@ -1,5 +1,6 @@
 FROM node:18-bullseye-slim
 
+# 1. Instala o básico
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-freefont-ttf \
@@ -8,13 +9,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copia apenas o package.json (já que apagamos o lock)
-COPY package.json ./
-
-# Instala do zero, sem olhar para travas antigas
-RUN npm install
-
+# 2. Copia tudo e DELETA o arquivo de trava na força bruta lá dentro do servidor
 COPY . .
+RUN rm -rf package-lock.json node_modules
+
+# 3. Instala do zero absoluto
+RUN npm install --no-package-lock
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
