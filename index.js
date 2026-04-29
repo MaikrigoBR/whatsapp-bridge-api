@@ -30,13 +30,15 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-        headless: true,
+        headless: 'new', // MUDANÇA: Usa o motor mais estável
+        handleSIGINT: false, // Ajuda a não fechar do nada no Fly.io
+        handleSIGTERM: false,
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox', 
             '--disable-dev-shm-usage', 
-            '--disable-accelerated-2d-canvas', // NOVO: Ajuda a desenhar o QR
-            '--disable-gpu',                  // NOVO: Desliga placa de vídeo
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu',
             '--no-first-run', 
             '--no-zygote', 
             '--single-process'
