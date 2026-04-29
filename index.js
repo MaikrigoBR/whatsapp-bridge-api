@@ -27,9 +27,9 @@ console.log = (...args) => { addLog('INFO', ...args); origLog(...args); };
 console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
 const client = new Client({
-    authStrategy: new LocalAuth(), // Temporariamente sem volume para testar
+    authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: '/usr/bin/google-chrome', // Caminho padrão dessa imagem nova
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     }
