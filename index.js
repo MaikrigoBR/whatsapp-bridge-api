@@ -27,20 +27,14 @@ console.log = (...args) => { addLog('INFO', ...args); origLog(...args); };
 console.error = (...args) => { addLog('ERROR', ...args); origErr(...args); };
 
 const client = new Client({
-    authStrategy: new LocalAuth({
-        dataPath: '/data/session' // AQUI É O DISCO RÍGIDO DO FLY.IO
-    }),
+    authStrategy: new LocalAuth(), // Temporariamente sem volume para testar
     puppeteer: {
-        executablePath: '/usr/bin/google-chrome-stable',
+        executablePath: '/usr/bin/google-chrome', // Caminho padrão dessa imagem nova
         headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu'
-        ]
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     }
 });
+
 
 let isReady = false;
 let qrBase64 = null;
