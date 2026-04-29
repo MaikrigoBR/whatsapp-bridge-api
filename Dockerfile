@@ -1,23 +1,20 @@
-# Usamos uma imagem que já vem com o Chrome e Puppeteer prontos!
-FROM ghcr.io/puppeteer/puppeteer:latest
+FROM node:18-bullseye-slim
 
-# Pasta do robô
+# Instala o Chromium oficial do Linux (Garantido!)
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-freefont-ttf \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-
-# Copia as peças
 COPY package*.json ./
-
-# Instala (usando as permissões certas)
-USER root
 RUN npm install
 COPY . .
 
-# Garante que o robô tenha permissão na pasta de dados
-RUN mkdir -p /data/session && chmod -R 777 /data
-
-# Volta para o usuário comum por segurança
-# USER pptruser
+# Avisa o robô onde o navegador está
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 EXPOSE 8080
 CMD ["node", "index.js"]
-
