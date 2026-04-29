@@ -14,10 +14,10 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
       - name: Garantir que o Volume existe
-        # Agora apontando para a pasta correta que você me disse
-        working-directory: ./whatsapp-bridge-api
+        # Removi o "working-directory", agora ele procura na frente de tudo
         run: flyctl volumes create whatsapp_data --region gru --size 1 -a whatsapp-bridge-api --non-interactive || true
         
       - name: Deploy
-        working-directory: ./whatsapp-bridge-api
+        # Removi o "working-directory" aqui também
         run: flyctl deploy --remote-only -a whatsapp-bridge-api
+
