@@ -13,12 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
-      - name: Forçar criação do Volume
-        # Tentamos criar um único volume e ignoramos se der erro
-        run: flyctl volumes create whatsapp_data --region iad --size 1 -a whatsapp-bridge-api --non-interactive || true
-        
-      - name: Deploy Forçado
-        # O segredo aqui é o "--ha=false" e o "--strategy immediate"
-        run: flyctl deploy --remote-only --ha=false --strategy immediate -a whatsapp-bridge-api
+      - name: Deploy Direto
+        run: flyctl deploy --remote-only --ha=false -a whatsapp-bridge-api
 
 
