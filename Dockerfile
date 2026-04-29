@@ -1,6 +1,5 @@
 FROM node:18-bullseye-slim
 
-# Apenas o Chromium e Fontes (O básico necessário)
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-freefont-ttf \
@@ -8,9 +7,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY package*.json ./
 
-# Como o link acima é um "tarball", o npm não vai pedir Git nem SSH!
+# Copia apenas o package.json (já que apagamos o lock)
+COPY package.json ./
+
+# Instala do zero, sem olhar para travas antigas
 RUN npm install
 
 COPY . .
