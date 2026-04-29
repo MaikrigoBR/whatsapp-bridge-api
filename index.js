@@ -30,9 +30,9 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    // Link infalível do Google para gerar o QR Code
-    qrCodeImage = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(qr)}&chs=300x300&choe=UTF-8`;
-    addLog('INFO', '📲 QR CODE DISPONÍVEL NO STATUS!');
+    // Usamos o QRServer, que é super estável e rápido
+    qrCodeImage = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
+    addLog('INFO', '📲 NOVO QR CODE GERADO VIA QRSERVER!');
 });
 
 client.on('authenticated', () => {
