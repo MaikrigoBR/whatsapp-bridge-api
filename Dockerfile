@@ -16,7 +16,7 @@ COPY . .
 RUN mkdir -p /data/session && chmod -R 777 /data
 
 # Volta para o usuário comum por segurança
-USER pptruser
+# USER pptruser
 
 EXPOSE 8080
 CMD ["node", "index.js"]
