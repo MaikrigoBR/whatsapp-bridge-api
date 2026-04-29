@@ -12,9 +12,9 @@ primary_region = "gru"
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'suspend' # Suspende para economizar quando não usa
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0 # Permite que ele pare e volte quando chegar mensagem
 
 [[mounts]]
   source = "whatsapp_data"
