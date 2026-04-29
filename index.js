@@ -31,10 +31,18 @@ const client = new Client({
     puppeteer: {
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox', 
+            '--disable-dev-shm-usage', 
+            '--disable-accelerated-2d-canvas', // NOVO: Ajuda a desenhar o QR
+            '--disable-gpu',                  // NOVO: Desliga placa de vídeo
+            '--no-first-run', 
+            '--no-zygote', 
+            '--single-process'
+        ]
     }
 });
-
 
 let isReady = false;
 let qrBase64 = null;
