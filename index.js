@@ -1,3 +1,6 @@
+// Certifique-se que essa linha existe no topo do arquivo
+let qrCodeImage = null; 
+
 const express = require('express');
 const cors = require('cors');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
@@ -8,9 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Página inicial para teste
-app.get('/', (req, res) => {
-    res.send('<h1>🤖 WhatsApp Bridge API: ONLINE</h1><p>Acesse <a href="/api/status">/api/status</a> para o QR Code.</p>');
+app.get('/api/status', (req, res) => {
+    res.json({
+        isReady: client.info ? true : false,
+        qrCode: qrCodeImage, // Ele vai ler a imagem que geramos via texto
+        lastError: null
+    });
 });
 
 const port = process.env.PORT || 8080; 
