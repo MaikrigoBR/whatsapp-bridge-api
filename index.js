@@ -30,12 +30,9 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    qrcodeLib.toDataURL(qr, (err, url) => {
-        if (!err) {
-            qrCodeImage = url;
-            addLog('INFO', '📲 NOVO QR CODE AGUARDANDO LEITURA...');
-        }
-    });
+    // Usamos o serviço do Google para gerar a imagem. É 100% garantido!
+    qrCodeImage = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(qr)}&chs=300x300&choe=UTF-8`;
+    addLog('INFO', '📲 QR CODE DISPONÍVEL VIA GOOGLE API!');
 });
 
 client.on('authenticated', () => {
