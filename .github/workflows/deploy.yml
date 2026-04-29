@@ -14,10 +14,10 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
       - name: Garantir que o Volume existe
-        # Removi o "working-directory", agora ele procura na frente de tudo
+        # Agora ele tenta criar em SP e ignora se já existir
         run: flyctl volumes create whatsapp_data --region gru --size 1 -a whatsapp-bridge-api --non-interactive || true
         
       - name: Deploy
-        # Removi o "working-directory" aqui também
-        run: flyctl deploy --remote-only -a whatsapp-bridge-api
+        # Adicionei o "--ha=false" para ele não tentar criar 2 robôs
+        run: flyctl deploy --remote-only --ha=false -a whatsapp-bridge-api
 
