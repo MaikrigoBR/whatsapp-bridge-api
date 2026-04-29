@@ -47,11 +47,16 @@ const client = new Client({
 let isReady = false;
 let qrBase64 = null;
 
-client.on('qr', async (qr) => {
-    console.log('📲 NOVO QR CODE GERADO!');
-    try {
-        qrBase64 = await qrcodeLib.toDataURL(qr);
-    } catch (err) { console.error('Erro ao gerar QR Base64', err); }
+client.on('qr', (qr) => {
+    // Em vez de usar a imagem do robô, nós mesmos criamos a nossa!
+    qrcodeLib.toDataURL(qr, (err, url) => {
+        if (err) {
+            console.error('[ERROR] Erro ao gerar imagem do QR:', err);
+            return;
+        }
+        qrCodeImage = url;
+        addLog('INFO', '📲 QR CODE GERADO COM SUCESSO (VIA TEXTO)!');
+    });
 });
 
 client.on('ready', () => {
