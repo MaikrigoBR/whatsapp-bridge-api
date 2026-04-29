@@ -85,6 +85,11 @@ app.post('/api/send', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`📡 Servidor rodando na porta ${port}`);
-    client.initialize().catch(err => console.error('Erro na inicialização:', err));
+    console.log(`📡 Servidor na porta ${port}`);
+    client.initialize().catch(err => {
+        // Agora ele vai mostrar o erro de verdade!
+        console.error('ERRO DETALHADO:', err.message || err);
+        if (err.stack) console.error('PILHA DO ERRO:', err.stack);
+    });
 });
+
