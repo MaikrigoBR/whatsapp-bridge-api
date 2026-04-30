@@ -53,8 +53,16 @@ client.on('auth_failure', (msg) => {
 
 // ENDPOINTS
 app.get('/api/status', (req, res) => {
-    res.json({ isReady, qrCode: qrCodeImage, lastError: null });
+    // Se o perfil do WhatsApp já carregou, liberamos o site na hora!
+    const actuallyReady = isReady || (client.info ? true : false);
+    
+    res.json({ 
+        isReady: actuallyReady, 
+        qrCode: actuallyReady ? null : qrCodeImage, 
+        lastError: null 
+    });
 });
+
 
 app.get('/api/logs', (req, res) => { res.json(apiLogs); });
 
